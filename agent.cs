@@ -10,6 +10,7 @@ using System.Threading;
 using System.Security.Permissions;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace WindowsService1
 {
@@ -18,76 +19,6 @@ namespace WindowsService1
         public agent(string[] args)
         {
             InitializeComponent();
-
-            /* 
-             * 第一周任务：被托管机器本地Agent服务
-             * 
-             * 主功能一览：
-             * list: 列出本机所有进程及其Id
-             * k +（进程Id）：结束该Id对应的进程
-             * f + （进程名）：根据名称搜索进程
-             * kill_all: 结束上一次搜索找到的所有进程
-             * s + （进程名）：根据名称打开该应用程序
-             * 
-             * 需要手动启动/停止该Windows服务
-             * 
-             */
-
-            int num_process = Process.GetProcesses().Length; // 获取进程总数，若没有任何进程，停止循环
-            Process[] searched_processes = new Process[1]; // 该array存储“f”指令的搜索结果
-            while(num_process > 0)
-            {
-                Console.WriteLine("\n***************************************\n" +
-                                  "list : 列出本机所有进程及其Id\n" +
-                                  "k + (进程Id)：结束该Id对应的进程\n" +
-                                  "f + (进程名)：根据名称搜索进程\n" +
-                                  "kill_all : 结束上一次搜索找到的所有进程" +
-                                  "s + (程序名) : 打开该应用程序" +
-                                  "\n***************************************\n");
-
-                
-                string command = Console.ReadLine(); // 读取用户输入
-                string com = command.Substring(0,command.IndexOf(" ")); // 提取指令
-                string info = command.Substring(command.IndexOf(" ")+1, command.Length - command.IndexOf(" ")-1); // 提取后续信息
-
-                if (com.Equals("list")) // 列出本机所有进程及其Id
-                {
-                    list_process();
-                }
-                else if(com.Equals("k")) // 结束该Id(info)对应的进程
-                {
-                    kill_process(info);
-                }
-                else if (com.Equals("f")) // 根据名称(info)搜索进程
-                {
-                    searched_processes = search_process(info);
-                }
-                else if (com.Equals("kill_all")) // 结束上一次搜索找到的所有进程
-                {
-                    if (searched_processes[0] != null) // 判断上一次是否搜索到结果
-                    {
-                        kill_all(searched_processes); // 若有结果，结束所有进程
-                    }
-                    else 
-                    {
-                        Console.WriteLine("搜索结果为空"); // 若结果为空，则不结束任何进程
-                        continue;
-                    }
-                }
-                else if(com.Equals("s")) // 根据应用程序名称打开该程序进程
-                {
-                    Process.Start(info);
-                }
-                else // 若无法识别指令，弹出提醒并继续循环
-                {
-                    Console.WriteLine("Unknown Command: {0}", com);
-                }
-
-                // 更新进程总数
-                num_process = Process.GetProcesses().Length;
-            }
-
-
         }
 
         // 遍历并列出本机所有进程
@@ -203,7 +134,73 @@ namespace WindowsService1
 
         protected override void OnStart(string[] args)
         {
+            /* 
+             * 第一周任务：被托管机器本地Agent服务
+             * 
+             * 主功能一览：
+             * list: 列出本机所有进程及其Id
+             * k +（进程Id）：结束该Id对应的进程
+             * f + （进程名）：根据名称搜索进程
+             * kill_all: 结束上一次搜索找到的所有进程
+             * s + （进程名）：根据名称打开该应用程序
+             * 
+             * 需要手动启动/停止该Windows服务
+             * 
+             */
 
+            int num_process = Process.GetProcesses().Length; // 获取进程总数，若没有任何进程，停止循环
+            Process[] searched_processes = new Process[1]; // 该array存储“f”指令的搜索结果
+            while (num_process > 0)
+            {
+                Console.WriteLine("\n***************************************\n" +
+                                  "list : 列出本机所有进程及其Id\n" +
+                                  "k + (进程Id)：结束该Id对应的进程\n" +
+                                  "f + (进程名)：根据名称搜索进程\n" +
+                                  "kill_all : 结束上一次搜索找到的所有进程" +
+                                  "s + (程序名) : 打开该应用程序" +
+                                  "\n***************************************\n");
+
+
+                string command = Console.ReadLine(); // 读取用户输入
+                string com = command.Substring(0, command.IndexOf(" ")); // 提取指令
+                string info = command.Substring(command.IndexOf(" ") + 1, command.Length - command.IndexOf(" ") - 1); // 提取后续信息
+
+                if (com.Equals("list")) // 列出本机所有进程及其Id
+                {
+                    list_process();
+                }
+                else if (com.Equals("k")) // 结束该Id(info)对应的进程
+                {
+                    kill_process(info);
+                }
+                else if (com.Equals("f")) // 根据名称(info)搜索进程
+                {
+                    searched_processes = search_process(info);
+                }
+                else if (com.Equals("kill_all")) // 结束上一次搜索找到的所有进程
+                {
+                    if (searched_processes[0] != null) // 判断上一次是否搜索到结果
+                    {
+                        kill_all(searched_processes); // 若有结果，结束所有进程
+                    }
+                    else
+                    {
+                        Console.WriteLine("搜索结果为空"); // 若结果为空，则不结束任何进程
+                        continue;
+                    }
+                }
+                else if (com.Equals("s")) // 根据应用程序名称打开该程序进程
+                {
+                    Process.Start(info);
+                }
+                else // 若无法识别指令，弹出提醒并继续循环
+                {
+                    Console.WriteLine("Unknown Command: {0}", com);
+                }
+
+                // 更新进程总数
+                num_process = Process.GetProcesses().Length;
+            }
         }
 
         protected override void OnStop()
