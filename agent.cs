@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
-using System.Threading;
-using System.Security.Permissions;
-using System.Security.Principal;
-using System.Threading.Tasks;
+﻿using Azure.Messaging.ServiceBus;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Azure.Messaging.ServiceBus;
+using System;
+using System.Diagnostics;
+using System.ServiceProcess;
+using System.Threading.Tasks;
 
 
 
@@ -101,7 +93,7 @@ namespace WindowsService1
                 {
                     com = command;
                 }
-                
+
 
                 if (com.Equals("list")) // 列出本机所有进程及其Id
                 {
@@ -183,14 +175,14 @@ namespace WindowsService1
 
             // Intialize ServiceBusReceivedMessage var to contain the received message
             ServiceBusReceivedMessage receivedMessage;
-            
+
 
             while (true)
             {
                 // Receive message
                 receivedMessage = await receiver.ReceiveMessageAsync();
 
-                if(receivedMessage != null)
+                if (receivedMessage != null)
                 {
                     JsonMessage jsonMessage = JsonConvert.DeserializeObject<JsonMessage>(receivedMessage.Body.ToString());
 
@@ -268,7 +260,7 @@ namespace WindowsService1
             foreach (Process p in local_processes) // 遍历所有进程名称，将任何名称中包含"name"字符串、
                                                    // 的进程存储到Array“result”并将列表发送至server
             {
-                if(p.ProcessName.ToLower().Contains(name.ToLower()))
+                if (p.ProcessName.ToLower().Contains(name.ToLower()))
                 {
                     result[i] = p;
                     i++;
@@ -298,9 +290,9 @@ namespace WindowsService1
 
             string doubleCheckMessage = "是否结束以下进程？";
 
-            foreach (Process p in p_array) 
-            {   
-                if(p != null)
+            foreach (Process p in p_array)
+            {
+                if (p != null)
                 {
                     doubleCheckMessage += p.ProcessName;
                     doubleCheckMessage += "\t\tId: ";
@@ -322,7 +314,7 @@ namespace WindowsService1
                 {
                     foreach (Process p in p_array)
                     {
-                        if(p != null)
+                        if (p != null)
                         {
                             p.Kill();
                             p.WaitForExit();
@@ -355,7 +347,7 @@ namespace WindowsService1
 
         private void process1_Exited(object sender, EventArgs e)
         {
-            
+
         }
 
         //将 Windows 服务作为控制台应用运行的辅助方法
